@@ -1,0 +1,191 @@
+UI/UX – Dôrô Wéré (Transport Urbain Intelligent)
+1️⃣ Principes généraux
+
+Simplicité : Navigation intuitive, actions principales accessibles en 1 à 2 clics
+
+Cohérence : Couleurs, typographie et boutons uniformes
+
+Feedback utilisateur : Notifications visuelles et sonores pour actions importantes
+
+Centralité de la carte : Carte interactive au cœur de l’expérience
+
+Accessibilité : Texte lisible, boutons larges, contraste élevé
+
+Performance : Optimisation pour téléphones entrée/milieu de gamme, chargement rapide, mode hors-ligne disponible
+
+2️⃣ Découpage des écrans et navigation
+🔹 1. Splash / Lancement
+
+Logo + animation courte
+
+Pré-chargement des données locales
+
+🔹 2. Connexion / Inscription
+
+Numéro étudiant / téléphone + mot de passe
+
+Option bypass pour test ou invité
+
+Bouton "Mot de passe oublié" clair
+
+🔹 3. Carte principale
+
+Carte interactive avec :
+
+Lignes de bus
+
+Arrêts
+
+Bus en temps réel
+
+Avatars amis proches
+
+Boutons flottants :
+
+Recherche trajet
+
+Créer alerte
+
+Localiser ma position
+
+Possibilité zoom / filtre par ligne
+
+🔹 4. Recherche de trajet
+
+Champs : point de départ, destination
+
+Suggestion automatique d’adresses ou arrêts
+
+Bouton "Calculer itinéraire"
+
+🔹 5. Résultat itinéraire
+
+Itinéraire détaillé : lignes à prendre, correspondances
+
+Arrêts les plus proches et distances à pied
+
+Temps estimé, coût estimé
+
+Bouton pour afficher sur la carte
+
+🔹 6. Alertes / Signalements
+
+Types d’alertes : bus plein, panne, incident, arrêt déplacé
+
+Sélection de la ligne et de l’arrêt
+
+Option ajout commentaire
+
+Confirmation visuelle après signalement
+
+🔹 7. Profil utilisateur / Paramètres
+
+Avatar, nom, localisation activée/désactivée
+
+Gestion amis
+
+Paramètres notification
+
+Mode invisibilité pour avatars
+
+Déconnexion
+
+🔹 8. Favoris / Historique
+
+Liste des trajets fréquents
+
+Possibilité d’épingler ou supprimer
+
+Historique des trajets précédents
+
+🔹 9. Mode hors-ligne / Téléchargement cartes
+
+Sélection des quartiers ou villes à télécharger
+
+Indication taille et état du téléchargement
+
+Option suppression / mise à jour
+
+🔹 10. Avatar & Proximité sociale
+
+Carte affichant avatars amis proches
+
+Notifications de proximité
+
+Contrôles de visibilité
+
+🔹 11. Accès administrateur
+
+Ajout / modification / suppression des lignes et trajets
+
+Gestion des arrêts et horaires
+
+Gestion des alertes globales
+
+Tableau de bord statistiques (trafic, alertes, utilisateurs)
+
+Interface sécurisée et accessible via authentification spécifique
+
+3️⃣ Navigation et UX flow
+
+Carte principale = hub central
+
+Boutons flottants pour actions clés (recherche, alerte, localisation)
+
+Onglets ou menu hamburger pour profil, favoris, paramètres, admin
+
+Overlays ou modals pour recherche de trajet et itinéraire détaillé
+
+Feedback immédiat pour chaque interaction (toast, vibration, couleur)
+
+4️⃣ Palette de couleurs et design
+
+Primaires : Couleur locale distinctive (ex : vert urbain ou bleu transport)
+
+Secondaires : Pour boutons, alertes, informations secondaires
+
+Alerte : Rouge ou orange pour signalements
+
+Typographie : Simple, lisible (sans-serif), taille adaptative pour mobile
+
+5️⃣ Typologie des boutons et interactions
+
+Boutons principaux : arrondi, taille suffisante, contraste élevé
+
+Boutons secondaires : actions moins prioritaires, couleurs neutres
+
+Feedback sur clic : animation légère + couleur
+
+Gestes : swipe pour historique ou favoris, tap pour détails
+
+6️⃣ Nombre total de pages
+Section	Écran / Page	Notes
+Lancement	Splash	1
+Authentification	Connexion / Inscription	1
+Carte centrale	Carte principale	1
+Recherche	Recherche trajet	1
+Itinéraire	Résultat itinéraire	1
+Alertes	Créer / voir alertes	1
+Profil	Profil utilisateur / Paramètres	1
+Favoris	Favoris / Historique	1
+Hors-ligne	Télécharger cartes	1
+Social	Avatar & Proximité	1
+Admin	Tableau de bord administrateur	1
+Total	11 pages	Navigation claire et fluide
+7️⃣ Conseils UX supplémentaires
+
+Garder 1 action principale par écran
+
+Toujours revenir facilement à la carte principale
+
+Notifications discrètes mais visibles pour alertes / avatars
+
+Indicateurs clairs pour localisation GPS active / inactive
+
+Mode hors-ligne avec indication de disponibilité des données
+
+Test sur plusieurs tailles d’écran et performance sur téléphones bas de gamme
+
+Interface admin simple et intuitive avec tableaux, filtres et boutons d’action clairs
+
+💡 Ce guide UI/UX est prêt pour être utilisé comme base de maquette, prototype interactif et référence pour le développement Flutter ou React Native.

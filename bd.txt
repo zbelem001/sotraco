@@ -1,0 +1,271 @@
+Vue globale des couches
+📱 Couche Présentation (Mobile)
+
+MapView
+
+TripPlannerView
+
+AlertView
+
+AvatarView
+
+🧠 Couche Métier (Core)
+
+User
+
+Bus
+
+Line
+
+Stop
+
+Trip
+
+Route
+
+Location
+
+Avatar
+
+Alert
+
+🌐 Couche Services
+
+GeolocationService
+
+RoutingService
+
+ETAService
+
+CostEstimationService
+
+AlertService
+
+OfflineMapService
+
+🗄️ Couche Données
+
+LocationRepository
+
+UserRepository
+
+TransportRepository
+
+�� 2️⃣ Classes métier principales (très important)
+👤 User
+User
+- userId
+- name
+- phoneNumber
+- avatarId
+- location
+- isLocationEnabled
+- reliabilityScore
+- friendsList
+
+
+Méthodes
+
+enableLocation()
+
+disableLocation()
+
+updateLocation()
+
+reportAlert()
+
+joinBus()
+
+🚍 Bus
+Bus
+- busId
+- lineId
+- currentLocation
+- direction
+- speed
+- lastUpdateTime
+
+
+Méthodes
+
+updateLocation()
+
+calculateETA(stop)
+
+isActive()
+
+👉 La position est calculée à partir des utilisateurs à bord.
+
+🛣️ Line
+Line
+- lineId
+- name
+- color
+- stopsList
+- averageSpeed
+- baseFare
+
+
+Méthodes
+
+getNextStops()
+
+getFare()
+
+getAverageSpeed()
+
+🚏 Stop
+Stop
+- stopId
+- name
+- location
+- linesServing
+
+
+Méthodes
+
+getNearbyStops(radius)
+
+getIncomingBuses()
+
+🧭 Trip
+Trip
+- tripId
+- startLocation
+- endLocation
+- routes
+- estimatedTime
+- estimatedCost
+
+
+Méthodes
+
+calculateTrip()
+
+optimizeTrip()
+
+getSummary()
+
+🔀 Route
+Route
+- routeId
+- line
+- stopsSequence
+- walkingDistance
+
+
+Méthodes
+
+calculateDuration()
+
+calculateCost()
+
+📍 Location
+Location
+- latitude
+- longitude
+- timestamp
+
+
+Méthodes
+
+calculateDistance(otherLocation)
+
+👥 Avatar
+Avatar
+- avatarId
+- userId
+- position
+- visibilityStatus
+
+
+Méthodes
+
+show()
+
+hide()
+
+updatePosition()
+
+⚠️ Alert
+Alert
+- alertId
+- type
+- description
+- location
+- lineId
+- createdBy
+- timestamp
+- validityDuration
+- votes
+
+
+Méthodes
+
+validate()
+
+expire()
+
+addVote()
+
+🔧 3️⃣ Classes de services (logique métier)
+📡 GeolocationService
+- getCurrentLocation()
+- startTracking()
+- stopTracking()
+
+🧮 RoutingService
+- findBestRoute(start, end)
+- findNearbyStops(location)
+
+
+👉 Utilise Dijkstra / A*
+
+⏱️ ETAService
+- calculateETA(bus, stop)
+- predictArrivalTime()
+
+💰 CostEstimationService
+- estimateTripCost(trip)
+- estimateRouteCost(route)
+
+🚨 AlertService
+- createAlert()
+- getActiveAlerts()
+- validateAlert()
+
+��️ OfflineMapService
+- downloadMap(city)
+- loadOfflineMap()
+
+🗄️ 4️⃣ Couche accès aux données (repositories)
+UserRepository
+- saveUser()
+- getUserById()
+
+TransportRepository
+- getLines()
+- getStops()
+- getBuses()
+
+LocationRepository
+- saveLocation()
+- getLastLocations()
+
+🔗 5️⃣ Relations entre classes (résumé UML)
+
+User ➝ possède ➝ Avatar
+
+User ➝ génère ➝ Alert
+
+User ➝ alimente ➝ Bus
+
+Bus ➝ appartient à ➝ Line
+
+Line ➝ dessert ➝ Stop
+
+Trip ➝ contient ➝ Route
+
+Route ➝ utilise ➝ Line
+
+Stop ➝ reçoit ➝ Bus
