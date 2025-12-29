@@ -96,11 +96,11 @@ class MockData {
           name: 'Ligne 1 - Centre-Nord',
           color: Colors.blue,
           stopsList: [
-            stops[0], // Place des Nations Unies
-            stops[1], // Avenue Kwame Nkrumah
-            stops[2], // Marché Central
-            stops[4], // Gare Routière
-            stops[6], // Quartier Gounghin
+            stops[0].stopId, // Place des Nations Unies
+            stops[1].stopId, // Avenue Kwame Nkrumah
+            stops[2].stopId, // Marché Central
+            stops[4].stopId, // Gare Routière
+            stops[6].stopId, // Quartier Gounghin
           ],
           averageSpeed: 25.0,
           baseFare: 200.0,
@@ -110,10 +110,10 @@ class MockData {
           name: 'Ligne 2 - Est-Ouest',
           color: Colors.green,
           stopsList: [
-            stops[1], // Avenue Kwame Nkrumah
-            stops[3], // Université Ouaga 1
-            stops[5], // Zone du Bois
-            stops[6], // Quartier Gounghin
+            stops[1].stopId, // Avenue Kwame Nkrumah
+            stops[3].stopId, // Université Ouaga 1
+            stops[5].stopId, // Zone du Bois
+            stops[6].stopId, // Quartier Gounghin
           ],
           averageSpeed: 22.0,
           baseFare: 200.0,
@@ -123,11 +123,11 @@ class MockData {
           name: 'Ligne 3 - Circulaire',
           color: Colors.orange,
           stopsList: [
-            stops[0], // Place des Nations Unies
-            stops[2], // Marché Central
-            stops[3], // Université Ouaga 1
-            stops[5], // Zone du Bois
-            stops[7], // Patte d'Oie
+            stops[0].stopId, // Place des Nations Unies
+            stops[2].stopId, // Marché Central
+            stops[3].stopId, // Université Ouaga 1
+            stops[5].stopId, // Zone du Bois
+            stops[7].stopId, // Patte d'Oie
           ],
           averageSpeed: 20.0,
           baseFare: 250.0,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../utils/app_theme.dart';
-import '../services/auth_service.dart';
+import '../providers/user_provider.dart';
+import '../services/api_auth_service.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -10,75 +12,79 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  final _authService = AuthService();
   bool _locationEnabled = true;
 
   @override
   Widget build(BuildContext context) {
-    final user = _authService.currentUser;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profil & Paramètres'),
-      ),
-      body: user == null
-          ? const Center(child: Text('Non connecté'))
-          : ListView(
-              padding: const EdgeInsets.all(AppConstants.defaultPadding),
-              children: [
-                // Profil utilisateur
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundColor: AppTheme.primaryColor,
-                          child: Text(
-                            user.name[0].toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 40,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          user.name,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          user.phoneNumber,
-                          style: const TextStyle(
-                            color: AppTheme.textSecondaryColor,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Profil & Paramètres'),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          body: !userProvider.isLoggedIn
+              ? const Center(child: Text('Non connecté'))
+              : ListView(
+                  padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                  children: [
+                    // Profil utilisateur
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
                           children: [
-                            _buildStatItem(
-                              Icons.star,
-                              user.reliabilityScore.toStringAsFixed(1),
-                              'Fiabilité',
+                            CircleAvatar(
+                              radius: 50,
+                              backgroundColor: AppTheme.primaryColor,
+                              child: Text(
+                                userProvider.userName[0].toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 40,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                            _buildStatItem(
-                              Icons.people,
-                              '${user.friendsList.length}',
-                              'Amis',
+                            const SizedBox(height: 16),
+                            Text(
+                              userProvider.userName,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              userProvider.userPhone,
+                              style: const TextStyle(
+                                color: AppTheme.textSecondaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _buildStatItem(
+                                  Icons.star,
+                                  userProvider.reliabilityScore.toStringAsFixed(1),
+                                  'Fiabilité',
+                                ),
+                                if (userProvider.isAdmin)
+                                  _buildStatItem(
+                                    Icons.admin_panel_settings,
+                                    'Admin',
+                                    'Rôle',
+                                  ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
                 const SizedBox(height: 16),
                 // Paramètres
                 const Text(
@@ -100,7 +106,7 @@ class _ProfileViewState extends State<ProfileView> {
                         value: _locationEnabled,
                         onChanged: (value) {
                           setState(() => _locationEnabled = value);
-                          _authService.toggleLocationEnabled();
+                          // TODO: Mettre à jour la préférence de localisation
                         },
                         secondary: const Icon(Icons.location_on),
                       ),
@@ -167,13 +173,16 @@ class _ProfileViewState extends State<ProfileView> {
                           'Déconnexion',
                           style: TextStyle(color: AppTheme.errorColor),
                         ),
-                        onTap: () {
-                          _authService.logout();
-                          Navigator.pushNamedAndRemoveUntil(
-                            context,
-                            '/login',
-                            (route) => false,
-                          );
+                        onTap: () async {
+                          await userProvider.logout();
+                          await ApiAuthService.logout();
+                          if (context.mounted) {
+                            Navigator.pushNamedAndRemoveUntil(
+                              context,
+                              '/login',
+                              (route) => false,
+                            );
+                          }
                         },
                       ),
                     ],
@@ -204,6 +213,8 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
               ],
             ),
+        );
+      },
     );
   }
 

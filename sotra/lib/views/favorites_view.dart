@@ -7,7 +7,13 @@ class FavoritesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Favoris & Historique')),
+      appBar: AppBar(
+        title: const Text('Favoris & Historique'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: DefaultTabController(
         length: 2,
         child: Column(

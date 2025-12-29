@@ -70,20 +70,6 @@ class UserModel {
   }
 }
 
-extension LocationModelCopyWith on LocationModel {
-  LocationModel copyWith({
-    double? latitude,
-    double? longitude,
-    DateTime? timestamp,
-  }) {
-    return LocationModel(
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
-      timestamp: timestamp ?? this.timestamp,
-    );
-  }
-}
-
 class LocationModel {
   final double latitude;
   final double longitude;
@@ -129,5 +115,17 @@ class LocationModel {
 
   double _toRadians(double degrees) {
     return degrees * 3.141592653589793 / 180;
+  }
+
+  LocationModel copyWith({
+    double? latitude,
+    double? longitude,
+    DateTime? timestamp,
+  }) {
+    return LocationModel(
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      timestamp: timestamp ?? this.timestamp,
+    );
   }
 }

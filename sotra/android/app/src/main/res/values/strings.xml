@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 
+        MAPBOX ACCESS TOKEN
+        
+        Pour obtenir votre token GRATUIT (50,000 chargements/mois) :
+        1. Allez sur https://account.mapbox.com/auth/signup/
+        2. Créez un compte gratuit
+        3. Copiez votre "Default public token" (commence par pk.)
+        4. Remplacez pk.eyJ1IjoiemlhMTMiLCJhIjoiY21qbjhhN3pyMzJlaDNocXhkb3dwbXVzNiJ9.ROJrdQUfDD-mer7YaDlPKA ci-dessous
+        
+        IMPORTANT : Utilisez le token PUBLIC (pk.) et non le SECRET (sk.)
+    -->
+    <string name="mapbox_access_token">pk.eyJ1IjoiemlhMTMiLCJhIjoiY21qbjhhN3pyMzJlaDNocXhkb3dwbXVzNiJ9.ROJrdQUfDD-mer7YaDlPKA</string>
+</resources>

@@ -26,6 +26,10 @@ class _AlertsViewState extends State<AlertsView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Alertes communautaires'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: alerts.isEmpty
           ? const Center(
@@ -90,7 +94,7 @@ class _AlertsViewState extends State<AlertsView> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppTheme.accentColor.withOpacity(0.1),
+                  color: AppTheme.accentColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
@@ -138,7 +142,7 @@ class _AlertsViewState extends State<AlertsView> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
       child: Icon(icon, color: color),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import 'package:provider/provider.dart';
+import '../services/api_auth_service.dart';
 import '../utils/app_theme.dart';
+import '../providers/user_provider.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -13,7 +15,6 @@ class _LoginViewState extends State<LoginView> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = AuthService();
   bool _isLoading = false;
   bool _obscurePassword = true;
 
@@ -28,19 +29,23 @@ class _LoginViewState extends State<LoginView> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      final success = await _authService.login(
-        _phoneController.text.trim(),
-        _passwordController.text,
+      final result = await ApiAuthService.login(
+        phoneNumber: _phoneController.text.trim(),
+        password: _passwordController.text,
       );
 
       setState(() => _isLoading = false);
 
-      if (success && mounted) {
+      if (result['success'] && mounted) {
+        // Sauvegarder l'utilisateur dans le provider
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        await userProvider.setUser(result['data']['user'], result['data']['token']);
+        
         Navigator.pushReplacementNamed(context, '/map');
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Identifiants incorrects'),
+          SnackBar(
+            content: Text(result['error'] ?? 'Identifiants incorrects'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -50,11 +55,20 @@ class _LoginViewState extends State<LoginView> {
 
   Future<void> _loginAsDemo() async {
     setState(() => _isLoading = true);
-    await _authService.loginWithDemo();
+    
+    final result = await ApiAuthService.demoLogin();
+    
     setState(() => _isLoading = false);
 
-    if (mounted) {
+    if (result['success'] && mounted) {
       Navigator.pushReplacementNamed(context, '/map');
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['error'] ?? 'Erreur de connexion demo'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
     }
   }
 
@@ -206,7 +220,7 @@ class _LoginViewState extends State<LoginView> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.accentColor.withOpacity(0.1),
+                    color: AppTheme.accentColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Column(

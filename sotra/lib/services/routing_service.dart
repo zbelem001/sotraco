@@ -77,16 +77,28 @@ class RoutingService {
 
     // Chercher une ligne directe
     for (var line in lines) {
-      if (line.stopsList.contains(startStop) &&
-          line.stopsList.contains(endStop)) {
-        final startIndex = line.stopsList.indexOf(startStop);
-        final endIndex = line.stopsList.indexOf(endStop);
+      final startStopId = startStop.stopId;
+      final endStopId = endStop.stopId;
+      
+      if (line.stopsList.contains(startStopId) &&
+          line.stopsList.contains(endStopId)) {
+        final startIndex = line.stopsList.indexOf(startStopId);
+        final endIndex = line.stopsList.indexOf(endStopId);
 
         if (endIndex > startIndex) {
+          // Convertir les IDs en StopModel
+          final stopIds = line.stopsList.sublist(startIndex, endIndex + 1);
+          final stops = stopIds.map((id) {
+            return _mockData.stops.firstWhere(
+              (s) => s.stopId == id,
+              orElse: () => _mockData.stops.first,
+            );
+          }).toList();
+          
           routes.add(RouteModel(
             routeId: 'route_${DateTime.now().millisecondsSinceEpoch}',
             line: line,
-            stopsSequence: line.stopsList.sublist(startIndex, endIndex + 1),
+            stopsSequence: stops,
             walkingDistance: 100.0,
           ));
           break;
@@ -99,17 +111,35 @@ class RoutingService {
       final firstLine = lines[0];
       final secondLine = lines[1];
 
+      // Convertir les IDs en StopModel pour la première ligne
+      final firstLineStopIds = firstLine.stopsList.take(3).toList();
+      final firstLineStops = firstLineStopIds.map((id) {
+        return _mockData.stops.firstWhere(
+          (s) => s.stopId == id,
+          orElse: () => _mockData.stops.first,
+        );
+      }).toList();
+
+      // Convertir les IDs en StopModel pour la deuxième ligne
+      final secondLineStopIds = secondLine.stopsList.take(2).toList();
+      final secondLineStops = secondLineStopIds.map((id) {
+        return _mockData.stops.firstWhere(
+          (s) => s.stopId == id,
+          orElse: () => _mockData.stops.first,
+        );
+      }).toList();
+
       routes.add(RouteModel(
         routeId: 'route_1',
         line: firstLine,
-        stopsSequence: firstLine.stopsList.take(3).toList(),
+        stopsSequence: firstLineStops,
         walkingDistance: 150.0,
       ));
 
       routes.add(RouteModel(
         routeId: 'route_2',
         line: secondLine,
-        stopsSequence: secondLine.stopsList.take(2).toList(),
+        stopsSequence: secondLineStops,
         walkingDistance: 100.0,
       ));
     }

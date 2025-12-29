@@ -11,13 +11,19 @@ class AvatarsView extends StatelessWidget {
     final friends = mockData.demoFriends;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Amis à proximité')),
+      appBar: AppBar(
+        title: const Text('Amis à proximité'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: Column(
         children: [
           // Statistiques
           Container(
             padding: const EdgeInsets.all(16),
-            color: AppTheme.primaryColor.withOpacity(0.1),
+            color: AppTheme.primaryColor.withValues(alpha: 0.1),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [

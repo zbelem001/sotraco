@@ -14,12 +14,18 @@ class OfflineMapsView extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Cartes hors-ligne')),
+      appBar: AppBar(
+        title: const Text('Cartes hors-ligne'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(16),
-            color: AppTheme.accentColor.withOpacity(0.1),
+            color: AppTheme.accentColor.withValues(alpha: 0.1),
             child: Row(
               children: [
                 const Icon(Icons.info_outline, color: AppTheme.accentColor),

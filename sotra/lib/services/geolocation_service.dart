@@ -1,3 +1,4 @@
+import 'package:geolocator/geolocator.dart';
 import '../models/user_model.dart';
 
 class GeolocationService {
@@ -15,37 +16,89 @@ class GeolocationService {
   bool get isEnabled => _isEnabled;
 
   Future<void> initialize() async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await _checkLocationPermission();
+  }
+
+  Future<bool> _checkLocationPermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Vérifier si le service de localisation est activé
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      _isEnabled = false;
+      return false;
+    }
+
+    // Vérifier les permissions
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        _isEnabled = false;
+        return false;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      _isEnabled = false;
+      return false;
+    }
+
     _isEnabled = true;
-    _currentLocation = _defaultLocation;
+    return true;
   }
 
   Future<LocationModel?> getCurrentLocation() async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    
-    if (!_isEnabled) {
-      return null;
+    try {
+      final hasPermission = await _checkLocationPermission();
+      
+      if (!hasPermission) {
+        // Retourner la position par défaut si pas de permission
+        _currentLocation = _defaultLocation;
+        return _currentLocation;
+      }
+
+      // Obtenir la position GPS réelle
+      final Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      _currentLocation = LocationModel(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        timestamp: DateTime.now(),
+      );
+
+      return _currentLocation;
+    } catch (e) {
+      // En cas d'erreur, retourner la position par défaut
+      _currentLocation = _defaultLocation;
+      return _currentLocation;
     }
-
-    // Simulation avec petites variations
-    final random = DateTime.now().millisecond / 1000;
-    _currentLocation = LocationModel(
-      latitude: _defaultLocation.latitude + (random * 0.01),
-      longitude: _defaultLocation.longitude + (random * 0.01),
-      timestamp: DateTime.now(),
-    );
-
-    return _currentLocation;
   }
 
   Future<void> enableLocation() async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    _isEnabled = true;
+    await _checkLocationPermission();
   }
 
   Future<void> disableLocation() async {
-    await Future.delayed(const Duration(milliseconds: 300));
     _isEnabled = false;
+  }
+
+  // Obtenir la distance entre deux points
+  double getDistanceBetween(
+    double startLatitude,
+    double startLongitude,
+    double endLatitude,
+    double endLongitude,
+  ) {
+    return Geolocator.distanceBetween(
+      startLatitude,
+      startLongitude,
+      endLatitude,
+      endLongitude,
+    );
   }
 
   double calculateDistance(LocationModel start, LocationModel end) {

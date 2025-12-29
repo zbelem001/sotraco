@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'stop_model.dart';
 
 class LineModel {
   final String lineId;
   final String name;
   final Color color;
-  final List<StopModel> stopsList;
+  final List<String> stopsList; // Liste des IDs d'arrêts
   final double averageSpeed;
   final double baseFare;
 
@@ -23,10 +22,7 @@ class LineModel {
       lineId: json['line_id'] ?? '',
       name: json['name'] ?? '',
       color: Color(json['color'] ?? 0xFF2196F3),
-      stopsList: (json['stops_list'] as List<dynamic>?)
-              ?.map((stop) => StopModel.fromJson(stop))
-              .toList() ??
-          [],
+      stopsList: List<String>.from(json['stops_list'] ?? []),
       averageSpeed: (json['average_speed'] ?? 25.0).toDouble(),
       baseFare: (json['base_fare'] ?? 200.0).toDouble(),
     );
@@ -37,16 +33,14 @@ class LineModel {
       'line_id': lineId,
       'name': name,
       'color': color.value,
-      'stops_list': stopsList.map((stop) => stop.toJson()).toList(),
+      'stops_list': stopsList,
       'average_speed': averageSpeed,
       'base_fare': baseFare,
     };
   }
 
-  List<StopModel> getNextStops(StopModel currentStop) {
-    final currentIndex = stopsList.indexWhere(
-      (stop) => stop.stopId == currentStop.stopId,
-    );
+  List<String> getNextStops(String currentStopId) {
+    final currentIndex = stopsList.indexOf(currentStopId);
     
     if (currentIndex == -1 || currentIndex == stopsList.length - 1) {
       return [];
@@ -61,7 +55,7 @@ class LineModel {
     String? lineId,
     String? name,
     Color? color,
-    List<StopModel>? stopsList,
+    List<String>? stopsList,
     double? averageSpeed,
     double? baseFare,
   }) {

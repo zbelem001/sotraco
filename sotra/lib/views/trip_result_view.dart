@@ -20,6 +20,10 @@ class TripResultView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Votre itinéraire'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.star_border),

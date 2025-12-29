@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../utils/app_theme.dart';
 import '../services/routing_service.dart';
 import '../services/geolocation_service.dart';
-import '../models/user_model.dart';
 
 class TripSearchView extends StatefulWidget {
   const TripSearchView({super.key});
@@ -62,6 +61,10 @@ class _TripSearchViewState extends State<TripSearchView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Rechercher un trajet'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(AppConstants.defaultPadding),
