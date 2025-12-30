@@ -888,7 +888,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text('Erreur: $e')),
         );
       }
     }
@@ -929,7 +929,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text('Erreur: $e')),
         );
       }
     }
