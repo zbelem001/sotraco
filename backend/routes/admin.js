@@ -60,12 +60,11 @@ router.get('/users', async (req, res) => {
     let query = `
       SELECT 
         user_id, 
-        display_name, 
+        name as display_name, 
         phone_number, 
         role, 
         avatar_id, 
         created_at, 
-        last_seen,
         (SELECT COUNT(*) FROM dorowere.trips WHERE user_id = u.user_id) as trips_count
       FROM dorowere.users u
       WHERE 1=1
@@ -79,7 +78,7 @@ router.get('/users', async (req, res) => {
     }
 
     if (search) {
-      query += ` AND (display_name ILIKE $${paramIndex} OR phone_number ILIKE $${paramIndex + 1})`;
+      query += ` AND (name ILIKE $${paramIndex} OR phone_number ILIKE $${paramIndex + 1})`;
       params.push(`%${search}%`, `%${search}%`);
       paramIndex += 2;
     }
@@ -91,7 +90,7 @@ router.get('/users', async (req, res) => {
 
     const countQuery = `SELECT COUNT(*) FROM dorowere.users WHERE 1=1` +
       (role ? ` AND role = '${role}'` : '') +
-      (search ? ` AND (display_name ILIKE '%${search}%' OR phone_number ILIKE '%${search}%')` : '');
+      (search ? ` AND (name ILIKE '%${search}%' OR phone_number ILIKE '%${search}%')` : '');
     const countResult = await pool.query(countQuery);
 
     res.json({
@@ -165,7 +164,7 @@ router.put('/users/:userId', async (req, res) => {
     let paramIndex = 1;
 
     if (display_name !== undefined) {
-      updates.push(`display_name = $${paramIndex++}`);
+      updates.push(`name = $${paramIndex++}`);
       params.push(display_name);
     }
     if (role !== undefined) {
