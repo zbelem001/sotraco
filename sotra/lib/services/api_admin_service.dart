@@ -73,6 +73,42 @@ class ApiAdminService {
     }
   }
 
+  // Get all lines
+  Future<Map<String, dynamic>> getLines() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/admin/lines'),
+        headers: ApiConfig.headersWithAuth(token),
+      ).timeout(_timeout);
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to load lines: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error loading lines: $e');
+    }
+  }
+
+  // Get all stops
+  Future<Map<String, dynamic>> getStops() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/admin/stops'),
+        headers: ApiConfig.headersWithAuth(token),
+      ).timeout(_timeout);
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to load stops: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error loading stops: $e');
+    }
+  }
+
   // Create line
   Future<Map<String, dynamic>> createLine(Map<String, dynamic> data) async {
     try {
@@ -246,6 +282,21 @@ class ApiAdminService {
       return response.statusCode == 200;
     } catch (e) {
       throw Exception('Error deleting bus: $e');
+    }
+  }
+
+  // Create user
+  Future<bool> createUser(Map<String, dynamic> data) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/admin/users'),
+        headers: ApiConfig.headersWithAuth(token),
+        body: json.encode(data),
+      ).timeout(_timeout);
+
+      return response.statusCode == 201;
+    } catch (e) {
+      throw Exception('Error creating user: $e');
     }
   }
 

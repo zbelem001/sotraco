@@ -18,6 +18,8 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
   Map<String, dynamic>? _stats;
   List<dynamic> _users = [];
   List<dynamic> _alerts = [];
+  List<dynamic> _lines = [];
+  List<dynamic> _stops = [];
   bool _isLoading = true;
   String? _error;
 
@@ -54,11 +56,15 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
       final stats = await _adminService.getStats();
       final users = await _adminService.getUsers();
       final alerts = await _adminService.getAlerts();
+      final lines = await _adminService.getLines();
+      final stops = await _adminService.getStops();
 
       setState(() {
         _stats = stats;
         _users = users['users'] ?? [];
         _alerts = alerts['alerts'] ?? [];
+        _lines = lines['lines'] ?? [];
+        _stops = stops['stops'] ?? [];
         _isLoading = false;
       });
     } catch (e) {
@@ -254,46 +260,54 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
   }
 
   Widget _buildUsersTab() {
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _users.length,
-        itemBuilder: (context, index) {
-          final user = _users[index];
-          return Card(
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: AppTheme.primaryColor,
-                child: Text(
-                  user['display_name']?[0]?.toUpperCase() ?? 'U',
-                  style: const TextStyle(color: Colors.white),
+    return Scaffold(
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: _users.length,
+          itemBuilder: (context, index) {
+            final user = _users[index];
+            return Card(
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: AppTheme.primaryColor,
+                  child: Text(
+                    user['display_name']?[0]?.toUpperCase() ?? 'U',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+                title: Text(user['display_name'] ?? 'Anonyme'),
+                subtitle: Text('${user['phone_number']} • ${user['role']}'),
+                trailing: PopupMenuButton(
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Text('Modifier'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Text('Supprimer'),
+                    ),
+                  ],
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      _showEditUserDialog(user);
+                    } else if (value == 'delete') {
+                      _deleteUser(user['user_id']);
+                    }
+                  },
                 ),
               ),
-              title: Text(user['display_name'] ?? 'Anonyme'),
-              subtitle: Text('${user['phone_number']} • ${user['role']}'),
-              trailing: PopupMenuButton(
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'edit',
-                    child: Text('Modifier'),
-                  ),
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Text('Supprimer'),
-                  ),
-                ],
-                onSelected: (value) {
-                  if (value == 'edit') {
-                    _showEditUserDialog(user);
-                  } else if (value == 'delete') {
-                    _deleteUser(user['user_id']);
-                  }
-                },
-              ),
-            ),
-          );
-        },
+            );
+          },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showCreateUserDialog,
+        backgroundColor: AppTheme.primaryColor,
+        child: const Icon(Icons.person_add),
+        tooltip: 'Créer un utilisateur',
       ),
     );
   }
@@ -369,39 +383,81 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
   }
 
   Widget _buildLinesManagement() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.route, size: 64, color: Colors.grey),
-          const SizedBox(height: 16),
-          const Text('Gestion des lignes'),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: _showCreateLineDialog,
-            icon: const Icon(Icons.add),
-            label: const Text('Créer une ligne'),
-          ),
-        ],
+    return Scaffold(
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: _lines.length,
+          itemBuilder: (context, index) {
+            final line = _lines[index];
+            return Card(
+              child: ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Color(int.parse(line['color'].replaceFirst('#', '0xFF'))),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      line['number']?.toString() ?? '?',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                title: Text(line['name'] ?? 'Ligne sans nom'),
+                subtitle: Text('${line['start_stop']} → ${line['end_stop']}'),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _deleteLine(line['line_id']),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showCreateLineDialog,
+        backgroundColor: AppTheme.primaryColor,
+        child: const Icon(Icons.add),
+        tooltip: 'Créer une ligne',
       ),
     );
   }
 
   Widget _buildStopsManagement() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.location_on, size: 64, color: Colors.grey),
-          const SizedBox(height: 16),
-          const Text('Gestion des arrêts'),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: _showCreateStopDialog,
-            icon: const Icon(Icons.add),
-            label: const Text('Créer un arrêt'),
-          ),
-        ],
+    return Scaffold(
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: _stops.length,
+          itemBuilder: (context, index) {
+            final stop = _stops[index];
+            return Card(
+              child: ListTile(
+                leading: const Icon(Icons.location_on, color: AppTheme.primaryColor),
+                title: Text(stop['name'] ?? 'Arrêt sans nom'),
+                subtitle: Text('${stop['latitude']?.toStringAsFixed(4) ?? '0'}, ${stop['longitude']?.toStringAsFixed(4) ?? '0'}'),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _deleteStop(stop['stop_id']),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showCreateStopDialog,
+        backgroundColor: AppTheme.primaryColor,
+        child: const Icon(Icons.add),
+        tooltip: 'Créer un arrêt',
       ),
     );
   }
@@ -485,6 +541,93 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
               }
             },
             child: const Text('Sauvegarder'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCreateUserDialog() {
+    final nameController = TextEditingController();
+    final phoneController = TextEditingController();
+    final passwordController = TextEditingController();
+    String selectedRole = 'user';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Créer un utilisateur'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Nom complet'),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: phoneController,
+              decoration: const InputDecoration(labelText: 'Numéro de téléphone'),
+              keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: passwordController,
+              decoration: const InputDecoration(labelText: 'Mot de passe'),
+              obscureText: true,
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: selectedRole,
+              decoration: const InputDecoration(labelText: 'Rôle'),
+              items: const [
+                DropdownMenuItem(value: 'user', child: Text('Utilisateur')),
+                DropdownMenuItem(value: 'driver', child: Text('Chauffeur')),
+                DropdownMenuItem(value: 'admin', child: Text('Administrateur')),
+              ],
+              onChanged: (value) {
+                selectedRole = value!;
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameController.text.isEmpty ||
+                  phoneController.text.isEmpty ||
+                  passwordController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Tous les champs sont requis')),
+                );
+                return;
+              }
+
+              final success = await _adminService.createUser({
+                'name': nameController.text,
+                'phone_number': phoneController.text,
+                'password': passwordController.text,
+                'role': selectedRole,
+              });
+
+              Navigator.pop(context);
+
+              if (success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Utilisateur créé avec succès')),
+                );
+                _loadData();
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Erreur lors de la création')),
+                );
+              }
+            },
+            child: const Text('Créer'),
           ),
         ],
       ),
@@ -707,6 +850,88 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Erreur lors de la suppression')),
       );
+    }
+  }
+
+  Future<void> _deleteLine(String lineId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmer la suppression'),
+        content: const Text('Voulez-vous vraiment supprimer cette ligne ? Cette action est irréversible.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final success = await _adminService.deleteLine(lineId);
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Ligne supprimée')),
+          );
+          _loadData();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Erreur lors de la suppression')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erreur: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteStop(String stopId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmer la suppression'),
+        content: const Text('Voulez-vous vraiment supprimer cet arrêt ? Cette action est irréversible.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final success = await _adminService.deleteStop(stopId);
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Arrêt supprimé')),
+          );
+          _loadData();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Erreur lors de la suppression')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erreur: $e')),
+        );
+      }
     }
   }
 

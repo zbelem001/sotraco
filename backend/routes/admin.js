@@ -106,6 +106,55 @@ router.get('/users', async (req, res) => {
   }
 });
 
+router.post('/users', async (req, res) => {
+  try {
+    const { name, phone_number, password, role = 'user' } = req.body;
+
+    // Validation
+    if (!name || !phone_number || !password) {
+      return res.status(400).json({ error: 'Nom, téléphone et mot de passe requis' });
+    }
+
+    // Vérifier si l'utilisateur existe déjà
+    const existingUser = await pool.query(
+      `SELECT user_id FROM ${process.env.DB_SCHEMA}.users WHERE phone_number = $1`,
+      [phone_number]
+    );
+
+    if (existingUser.rows.length > 0) {
+      return res.status(409).json({ error: 'Ce numéro est déjà enregistré' });
+    }
+
+    // Hasher le mot de passe
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // Insérer l'utilisateur
+    const result = await pool.query(
+      `INSERT INTO ${process.env.DB_SCHEMA}.users 
+       (name, phone_number, password_hash, is_location_enabled, reliability_score, role)
+       VALUES ($1, $2, $3, true, 5.0, $4)
+       RETURNING user_id, name, phone_number, role, created_at`,
+      [name, phone_number, passwordHash, role]
+    );
+
+    const user = result.rows[0];
+
+    res.status(201).json({
+      message: 'Utilisateur créé avec succès',
+      user: {
+        userId: user.user_id,
+        name: user.name,
+        phoneNumber: user.phone_number,
+        role: user.role,
+        createdAt: user.created_at,
+      },
+    });
+  } catch (error) {
+    console.error('Erreur création utilisateur:', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la création' });
+  }
+});
+
 router.put('/users/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
