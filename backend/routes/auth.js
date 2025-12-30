@@ -41,7 +41,7 @@ router.post('/register', async (req, res) => {
       `INSERT INTO ${process.env.DB_SCHEMA}.users 
        (name, phone_number, password_hash, is_location_enabled, reliability_score)
        VALUES ($1, $2, $3, true, 5.0)
-       RETURNING user_id, name, phone_number, reliability_score, created_at`,
+       RETURNING user_id, name, phone_number, reliability_score, role, created_at`,
       [name, phone_number, passwordHash]
     );
 
@@ -56,6 +56,7 @@ router.post('/register', async (req, res) => {
         name: user.name,
         phoneNumber: user.phone_number,
         reliabilityScore: user.reliability_score,
+        role: user.role,
         createdAt: user.created_at,
       },
     });
@@ -78,7 +79,7 @@ router.post('/login', async (req, res) => {
     // Chercher l'utilisateur
     const result = await db.query(
       `SELECT user_id, name, phone_number, password_hash, reliability_score, 
-              is_location_enabled, avatar_id, created_at
+              is_location_enabled, avatar_id, role, created_at
        FROM ${process.env.DB_SCHEMA}.users 
        WHERE phone_number = $1`,
       [phone_number]
@@ -110,6 +111,7 @@ router.post('/login', async (req, res) => {
         reliabilityScore: user.reliability_score,
         isLocationEnabled: user.is_location_enabled,
         avatarId: user.avatar_id,
+        role: user.role,
         createdAt: user.created_at,
       },
     });
