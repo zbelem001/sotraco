@@ -639,14 +639,6 @@ class _MapViewState extends State<MapView> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.search),
-            title: const Text('Rechercher un trajet'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/trip-search');
-            },
-          ),
-          ListTile(
             leading: const Icon(Icons.warning),
             title: const Text('Alertes'),
             onTap: () {

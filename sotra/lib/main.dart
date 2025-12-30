@@ -6,7 +6,6 @@ import 'views/splash_view.dart';
 import 'views/login_view.dart';
 import 'views/register_view.dart';
 import 'views/map_view.dart';
-import 'views/trip_search_view.dart';
 import 'views/trip_result_view.dart';
 import 'views/alerts_view.dart';
 import 'views/profile_view.dart';
@@ -39,7 +38,6 @@ class DoroWereApp extends StatelessWidget {
           '/login': (context) => const LoginView(),
           '/register': (context) => const RegisterView(),
           '/map': (context) => const MapView(),
-          '/trip-search': (context) => const TripSearchView(),
           '/trip-result': (context) => const TripResultView(),
           '/alerts': (context) => const AlertsView(),
           '/profile': (context) => const ProfileView(),
