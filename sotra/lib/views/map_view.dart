@@ -5,9 +5,7 @@ import '../utils/app_theme.dart';
 import '../data/mock_data.dart';
 import '../models/line_model.dart';
 import '../models/user_model.dart';
-import '../services/routing_service.dart';
 import '../services/geolocation_service.dart';
-import '../services/geocoding_service.dart';
 import '../services/api_auth_service.dart';
 import '../config/mapbox_config.dart';
 import '../providers/user_provider.dart';
@@ -21,11 +19,8 @@ class MapView extends StatefulWidget {
 
 class _MapViewState extends State<MapView> {
   final _mockData = MockData();
-  final _startController = TextEditingController();
-  final _endController = TextEditingController();
-  final _routingService = RoutingService();
+  final _destinationController = TextEditingController();
   final _geoService = GeolocationService();
-  final _geocodingService = GeocodingService();
   
   MapboxMap? _mapboxMap;
   PointAnnotationManager? _stopAnnotationManager;
@@ -216,15 +211,14 @@ class _MapViewState extends State<MapView> {
 
   @override
   void dispose() {
-    _startController.dispose();
-    _endController.dispose();
+    _destinationController.dispose();
     super.dispose();
   }
 
-  Future<void> _searchTrip() async {
-    if (_startController.text.isEmpty || _endController.text.isEmpty) {
+  Future<void> _searchLine() async {
+    if (_destinationController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez remplir le départ et l\'arrivée')),
+        const SnackBar(content: Text('Veuillez saisir une destination')),
       );
       return;
     }
@@ -232,35 +226,56 @@ class _MapViewState extends State<MapView> {
     setState(() => _isSearching = true);
 
     try {
-      // Rechercher les lieux de départ et d'arrivée
-      final startLocations = await _geocodingService.searchLocation(_startController.text);
-      final endLocations = await _geocodingService.searchLocation(_endController.text);
+      // Chercher les arrêts qui correspondent à la destination
+      final destination = _destinationController.text.toLowerCase();
+      final matchingStops = _mockData.stops.where((stop) =>
+        stop.name.toLowerCase().contains(destination)
+      ).toList();
 
-      if (startLocations.isEmpty || endLocations.isEmpty) {
+      if (matchingStops.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Lieux non trouvés')),
+            const SnackBar(content: Text('Aucun arrêt trouvé pour cette destination')),
           );
         }
         setState(() => _isSearching = false);
         return;
       }
 
-      // Prendre le premier résultat de chaque recherche
-      final startLocation = _geocodingService.locationToModel(startLocations.first);
-      final endLocation = _geocodingService.locationToModel(endLocations.first);
+      // Récupérer toutes les lignes qui passent par ces arrêts
+      final lineIds = <String>{};
+      for (final stop in matchingStops) {
+        lineIds.addAll(stop.linesServing);
+      }
 
-      // Calculer l'itinéraire
-      final trip = await _routingService.calculateTrip(startLocation, endLocation);
+      final matchingLines = _mockData.lines.where((line) =>
+        lineIds.contains(line.lineId)
+      ).toList();
 
       setState(() => _isSearching = false);
 
-      if (trip != null && mounted) {
-        Navigator.pushNamed(context, '/trip-result', arguments: trip);
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Aucun itinéraire trouvé')),
-        );
+      if (matchingLines.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Aucune ligne trouvée pour cette destination')),
+          );
+        }
+      } else if (matchingLines.length == 1) {
+        // Une seule ligne trouvée, l'afficher directement
+        setState(() {
+          _selectedLine = matchingLines.first;
+        });
+        _updateMapAnnotations();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Ligne ${matchingLines.first.name} affichée')),
+          );
+        }
+      } else {
+        // Plusieurs lignes trouvées, afficher une boîte de dialogue pour choisir
+        if (mounted) {
+          _showLineSelectionDialog(matchingLines);
+        }
       }
     } catch (e) {
       setState(() => _isSearching = false);
@@ -270,6 +285,54 @@ class _MapViewState extends State<MapView> {
         );
       }
     }
+  }
+
+  void _showLineSelectionDialog(List<LineModel> lines) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Choisir une ligne'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: lines.length,
+              itemBuilder: (context, index) {
+                final line = lines[index];
+                return ListTile(
+                  leading: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: line.color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  title: Text(line.name),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      _selectedLine = line;
+                    });
+                    _updateMapAnnotations();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Ligne ${line.name} affichée')),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Annuler'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -320,122 +383,54 @@ class _MapViewState extends State<MapView> {
           ),
         ],
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              // Champ départ
-              Expanded(
-                child: TextField(
-                  controller: _startController,
-                  decoration: InputDecoration(
-                    hintText: 'Départ (ex: Centre, Gare, Marché)',
-                    prefixIcon: IconButton(
-                      icon: const Icon(
-                        Icons.my_location,
-                        color: AppTheme.primaryColor,
-                        size: 20,
-                      ),
-                      onPressed: () async {
-                        if (_userLocation != null) {
-                          final address = await _geocodingService.getAddressFromCoordinates(
-                            _userLocation!.latitude,
-                            _userLocation!.longitude,
-                          );
-                          _startController.text = address;
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Activez d\'abord votre localisation')),
-                          );
-                        }
-                      },
-                      tooltip: 'Utiliser ma position',
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    isDense: true,
-                  ),
+          // Champ destination
+          Expanded(
+            child: TextField(
+              controller: _destinationController,
+              decoration: InputDecoration(
+                hintText: 'Destination (ex: Université, Marché Central)',
+                prefixIcon: const Icon(
+                  Icons.place,
+                  color: AppTheme.primaryColor,
+                  size: 20,
                 ),
-              ),
-              const SizedBox(width: 8),
-              // Bouton inverser
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                filled: true,
+                fillColor: Colors.grey[100],
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
                 ),
-                child: IconButton(
-                  icon: const Icon(Icons.swap_vert, size: 20),
-                  onPressed: () {
-                    final temp = _startController.text;
-                    _startController.text = _endController.text;
-                    _endController.text = temp;
-                  },
-                  padding: const EdgeInsets.all(8),
-                  constraints: const BoxConstraints(),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
                 ),
+                isDense: true,
               ),
-            ],
+            ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              // Champ arrivée
-              Expanded(
-                child: TextField(
-                  controller: _endController,
-                  decoration: InputDecoration(
-                    hintText: 'Arrivée (ex: Université, Aéroport)',
-                    prefixIcon: const Icon(
-                      Icons.place,
-                      color: AppTheme.errorColor,
-                      size: 20,
+          const SizedBox(width: 8),
+          // Bouton rechercher ligne
+          ElevatedButton.icon(
+            onPressed: _isSearching ? null : _searchLine,
+            icon: _isSearching
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    isDense: true,
-                  ),
-                ),
+                  )
+                : const Icon(Icons.search, size: 20),
+            label: const Text('Ligne'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
               ),
-              const SizedBox(width: 8),
-              // Bouton itinéraire
-              ElevatedButton.icon(
-                onPressed: _isSearching ? null : _searchTrip,
-                icon: _isSearching
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Icon(Icons.directions, size: 20),
-                label: const Text('Itinéraire'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),
